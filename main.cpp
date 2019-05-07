@@ -15,8 +15,8 @@ int main(int argc, char **argv)
     cout << argc << endl;
 
     if(argc >= 2){
-        string caminhoComando = argv[1];
-        string comando = argv[2];
+        string caminhoComando = argv[1]; //Caminho de onde o Mymfs deve ser executado
+        string comando = argv[2];        //Comando do Mymfs que deve ser executado
         cout << comando << endl;
 
         cout << "Comando: " << comando << endl;
@@ -28,12 +28,13 @@ int main(int argc, char **argv)
         }
 
         else if(comando == "import"){
-            string caminhoArquivoImport = argv[3];
+            string caminhoArquivoImport = argv[3];    //Caminho do arquivo a ser importado para o diretório especficiado
             importarArquivo(caminhoComando, caminhoArquivoImport);
         }
 
         else if(comando == "export"){
-            string caminhoArquivoExport = argv[3];
+            string caminhoArquivoExport = argv[3];  //Caminho do arquivo a ser exportado para o diretório especficiado
+            //TODO: obter caminho de onde o arquivo exportado deve ir
             exportarArquivo(caminhoComando, caminhoArquivoExport);
         }
     }
@@ -56,7 +57,6 @@ void importarArquivo(string caminhoComando, string caminhoArquivoImport){
         infile.seekg (0, ios::end);
         end = infile.tellg();
         cout << "end is: " << end << " \n";
-        long size = (end-begin);
         infile.seekg (0);
         long sizeMax = 512000;
 
@@ -136,14 +136,17 @@ void exportarArquivo(string caminhoComando, string caminhoArquivoExport){
         string nomeDiretorioEncontrado;
         string qtdArquivosEncontrado;
         do{
+
             string linhaConfig;
             std::getline(arqConfigExiste, linhaConfig);
             nomeDiretorioEncontrado = linhaConfig.substr(0, linhaConfig.find(";"));
             qtdArquivosEncontrado = linhaConfig.substr(linhaConfig.find(";") + 1, (linhaConfig.size()-linhaConfig.find(";")));
             cout << nomeDiretorioEncontrado << endl;
             cout <<"qtd: " + qtdArquivosEncontrado << endl;
+
         } while (strcmp(nomeDiretorioEncontrado.c_str(), nomeDiretorioBuscado.c_str()) != 0 &&
                  !nomeDiretorioEncontrado.empty());
+
         if(strcmp(nomeDiretorioEncontrado.c_str(), nomeDiretorioBuscado.c_str()) == 0 &&
                  !nomeDiretorioEncontrado.empty() && !qtdArquivosEncontrado.empty()){
             int numArquivos = stoi(qtdArquivosEncontrado);
