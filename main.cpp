@@ -19,10 +19,9 @@ int main(int argc, char **argv)
 
         cout << "Comando: " << comando << endl;
         if(comando == "config"){
-            string caminhoConfig = caminhoComando + "\config.txt";
+            string caminhoConfig = caminhoComando + "\\config.txt";
             cout << "Caminho do arquivo Config: " << caminhoConfig << endl;
             std::ofstream arquivoConfig( caminhoConfig );
-
             arquivoConfig.close();
         }
 
@@ -30,6 +29,9 @@ int main(int argc, char **argv)
             string caminhoArquivoImport = argv[3];
             importarArquivo(caminhoComando, caminhoArquivoImport);
         }
+    }
+    else{
+        cout << "Por favor, informe os argumentos necessarios" << endl;
     }
 
 
@@ -78,8 +80,8 @@ int main(int argc, char **argv)
 
 void importarArquivo(string caminhoComando, string caminhoArquivoImport){
     streampos begin, end, pos;
-
-    if(!caminhoArquivoImport.empty()){
+    std::ifstream arqConfigExiste (caminhoComando + "/config.txt");
+    if(arqConfigExiste.good() && !caminhoArquivoImport.empty()){
         std::ifstream infile (caminhoArquivoImport, std::ifstream::binary);
         begin = infile.tellg();
         cout << "begin is: " << begin << " \n";
@@ -139,11 +141,20 @@ void importarArquivo(string caminhoComando, string caminhoArquivoImport){
                 }
                 outfile.close();
             }
+
+            std::ofstream arqConfig (caminhoComando + "/config.txt", std::ios_base::app | std::ios_base::out);
+            string linhaConfig = nomeDiretorio + ";" + std::to_string(numArquivos) + "\n";
+            arqConfig << linhaConfig;
+            arqConfig.close();
+
         }
         else {
             cout << "Ocorreu um erro! Um arquivo com esse nome ja existe no Mymfs." << endl;
         }
 
         infile.close();
+    }
+    else {
+         cout << "Arquivo nao importado no Mymfs pois o caminho informado esta vazio ou ambiente ainda nao foi configurado." << endl;
     }
 }
