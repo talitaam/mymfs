@@ -3,10 +3,12 @@
 #include <math.h>
 #include <string>
 #include <windows.h>
+#include <filesystem>
 
 using namespace std;
 
 void importarArquivo(string caminhoComando, string caminhoArquivoImport);
+void exportarArquivo(string caminhoComando, string caminhoArquivoExport);
 
 int main(int argc, char **argv)
 {
@@ -25,9 +27,14 @@ int main(int argc, char **argv)
             arquivoConfig.close();
         }
 
-        if(comando == "import"){
+        else if(comando == "import"){
             string caminhoArquivoImport = argv[3];
             importarArquivo(caminhoComando, caminhoArquivoImport);
+        }
+
+        else if(comando == "export"){
+            string caminhoArquivoExport = argv[3];
+            exportarArquivo(caminhoComando, caminhoArquivoExport);
         }
     }
     else{
@@ -35,46 +42,7 @@ int main(int argc, char **argv)
     }
 
 
-    //Dar merge
 
-    //merge
-    /*std::ofstream combined_file( "combined_file.txt" ) ;
-    for(int i=0; i<numArquivos; i++)
-    {
-        auto s = std::to_string(i);
-        cout << "\nnum do arquivo do arquivo a sofrer merge: " << s + ".txt" << " \n";
-        s = s+".txt";
-        std::ifstream srce_file(s) ;
-        if(srce_file)
-        {
-            combined_file << srce_file.rdbuf() ;
-            if(combined_file){
-                std::cout << "file " + s + " appended\n" ;
-            }
-        }
-        else
-        {
-            std::cerr << "error: could not open " << s << '\n' ;
-        }
-        srce_file.close();
-    }
-    combined_file.close();
-
-
-    //iniciando o merge criando um arquivo file
-    std::ifstream infile2 ("combined_file.txt",std::ifstream::binary);
-    begin = infile2.tellg();
-    cout << "begin is: " << begin << " \n";
-    infile2.seekg (0, ios::end);
-    end = infile2.tellg();
-    cout << "end is: " << end << " \n";
-    //infile.close();
-    infile2.seekg (0);
-    infile2.close();
-
-    cout << "size combined_file is: " << (end-begin) << " bytes.\n";
-
-    infile.close();*/
     return 0;
 }
 
@@ -110,6 +78,7 @@ void importarArquivo(string caminhoComando, string caminhoArquivoImport){
         cout << "caminho diretorio: " << caminhoDiretorio << endl;
 
         int erro = CreateDirectory(caminhoDiretorio, NULL);
+
         if(erro != 0){
             for(int i=0; i<numArquivos; i++) {
                 auto s = std::to_string(i);
@@ -156,5 +125,55 @@ void importarArquivo(string caminhoComando, string caminhoArquivoImport){
     }
     else {
          cout << "Arquivo nao importado no Mymfs pois o caminho informado esta vazio ou ambiente ainda nao foi configurado." << endl;
+    }
+}
+
+void exportarArquivo(string caminhoComando, string caminhoArquivoExport){
+//Dar merge
+    std::ifstream arqConfigExiste (caminhoComando + "/config.txt");
+    if(arqConfigExiste.good() && !caminhoArquivoExport.empty()){
+        string nomeDiretorioBuscado = caminhoArquivoExport.substr(0, caminhoArquivoExport.find("."));
+        string nomeDiretorioEncontrado;
+        string qtdArquivosEncontrado;
+        do{
+            string linhaConfig;
+            std::getline(arqConfigExiste, linhaConfig);
+            nomeDiretorioEncontrado = linhaConfig.substr(0, linhaConfig.find(";"));
+            qtdArquivosEncontrado = linhaConfig.substr(linhaConfig.find(";") + 1, (linhaConfig.size()-linhaConfig.find(";")));
+            cout << nomeDiretorioEncontrado << endl;
+            cout <<"qtd: " + qtdArquivosEncontrado << endl;
+        } while (strcmp(nomeDiretorioEncontrado.c_str(), nomeDiretorioBuscado.c_str()) != 0 &&
+                 !nomeDiretorioEncontrado.empty());
+        if(strcmp(nomeDiretorioEncontrado.c_str(), nomeDiretorioBuscado.c_str()) == 0 &&
+                 !nomeDiretorioEncontrado.empty() && !qtdArquivosEncontrado.empty()){
+            int numArquivos = stoi(qtdArquivosEncontrado);
+
+            //TODO: exportar para pasta do args[4] e nome do txt com nomeDiretorioEncontrado
+            std::ofstream combined_file( "combined_file.txt" );
+            for(int i=0; i<numArquivos; i++)
+            {
+                auto s = std::to_string(i);
+                cout << "\nnum do arquivo do arquivo a sofrer merge: " << s + ".txt" << " \n";
+                s = s+".txt";
+                std::ifstream srce_file(caminhoComando + "/" + nomeDiretorioEncontrado + "/" + s) ;
+                if(srce_file)
+                {
+                    combined_file << srce_file.rdbuf() ;
+                    if(combined_file){
+                        std::cout << "file " + s + " appended\n" ;
+                    }
+                }
+                else
+                {
+                    std::cerr << "error: could not open " << s << '\n' ;
+                }
+                srce_file.close();
+            }
+            combined_file.close();
+        }
+
+    }
+    else {
+         cout << "Arquivo nao exportado do Mymfs pois o caminho informado esta vazio ou ambiente ainda nao foi configurado." << endl;
     }
 }

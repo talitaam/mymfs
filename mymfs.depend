@@ -1,0 +1,9 @@
+# depslib dependency file v1.0
+1557244208 source:c:\users\gabriel haddad\desktop\mymfs\main.cpp
+	<iostream>
+	<fstream>
+	<math.h>
+	<string>
+	<windows.h>
+	<filesystem>
+
