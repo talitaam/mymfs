@@ -79,13 +79,16 @@ void config (string caminhoComando){
 void importarArquivo(string caminhoComando, string caminhoArquivoImport)
 {
     streampos begin, end, pos;
-    std::ifstream arqConfigExiste (caminhoComando + "/config.txt");
+    std::ifstream arqConfigExiste (caminhoComando + "/config.txt"); // Verifica se o arquivo Config existe
     if(arqConfigExiste.good())
     {
         arqConfigExiste.seekg (0);
         arqConfigExiste.seekg (0, ios::end);
         end = arqConfigExiste.tellg();
         arqConfigExiste.close();
+    }else {
+        cout << "O Mymfs nao esta configurado na unidade informada." << endl;
+        return;
     }
     if(end<50000)
     {
