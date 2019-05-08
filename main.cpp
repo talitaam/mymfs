@@ -93,29 +93,29 @@ void importarArquivo(string caminhoComando, string caminhoArquivoImport)
         {
             std::ifstream infile (caminhoArquivoImport, std::ifstream::binary);
             begin = infile.tellg();
-            cout << "begin is: " << begin << " \n";
+            //cout << "Comeco eh: " << begin << " \n";
             infile.seekg (0, ios::end);
             end = infile.tellg();
-            cout << "end is: " << end << " \n";
+            //cout << "Fim eh: " << end << " \n";
             infile.seekg (0);
             long sizeMax = 512000;
 
             cout << "size do arquivo passado is: " << (end-begin) << " bytes.\n";
 
             int numArquivos = ceil((end-begin)/512000.0); // saber quantos arquivos de 500 KB ou menos serão criados
-            cout << "num arquivos: " << numArquivos<< " arquivos. Considerando tamanho max de 500 KB por arquivo. \n";
+            cout << "Quantidade de arquivos arquivos: " << numArquivos<< " arquivos. Considerando tamanho max de 500 KB por arquivo. \n";
 
             //dividr arquivo passado em arquivos menores de no máx 500 KB
             char* buffer;
             infile.seekg(0);
 
             string nomeDiretorio = caminhoArquivoImport.substr(0, caminhoArquivoImport.find("."));
-            cout << "Nome Diretorio: " + nomeDiretorio << endl;
+            //cout << "Nome Diretorio: " + nomeDiretorio << endl;
             string caminhoDiretorioString = caminhoComando + "/" + nomeDiretorio;
             char * caminhoDiretorio = new char [caminhoDiretorioString.length()+1];
             strcpy(caminhoDiretorio, caminhoDiretorioString.c_str());
 
-            cout << "caminho diretorio: " << caminhoDiretorio << endl;
+            cout << "Caminho diretorio: " << caminhoDiretorio << endl;
 
             int erro = CreateDirectory(caminhoDiretorio, NULL);
 
@@ -131,24 +131,24 @@ void importarArquivo(string caminhoComando, string caminhoArquivoImport)
                     if(i!= numArquivos-1)
                     {
                         infile.seekg(pos);
-                        cout << "pos antes is: " << pos << " \n";
+                        //cout << "pos antes eh: " << pos << " \n";
                         buffer = new char[sizeMax];
                         infile.read (buffer,sizeMax);
                         pos = infile.tellg();
-                        cout << "pos antes is: " << pos << " \n";
+                        //cout << "pos antes eh: " << pos << " \n";
                         outfile.write (buffer,sizeMax);
                         delete[] buffer;
                     }
                     else
                     {
                         infile.seekg(pos);
-                        cout << "pos antes is: " << pos << " \n";
+                        //cout << "pos antes eh: " << pos << " \n";
                         int finalSize = (end-pos);
-                        cout << "finalSize: " << finalSize << " \n";
+                        //cout << "tamanho final: " << finalSize << " \n";
                         buffer = new char[finalSize];
                         infile.read (buffer,finalSize);
                         pos = infile.tellg();
-                        cout << "pos depois is: " << pos << " \n";
+                        //cout << "pos depois eh: " << pos << " \n";
                         outfile.write (buffer,finalSize);
                         delete[] buffer;
                     }
