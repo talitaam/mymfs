@@ -12,15 +12,12 @@ void exportarArquivo(string caminhoComando, string caminhoArquivoExport, string 
 void listAll(string caminhoComando);
 
 int main(int argc, char **argv){
-    cout << "Bem vindo ao Mymfs!" << endl;
 
     //Deve possuir no minimo 3 argumentos (nome do programa - passado automaticamente,
     //caminho da unidade X, comando a ser executado)
     if(argc >= 3){
         string caminhoComando = argv[1]; //Caminho de onde o Mymfs deve ser executado
         string comando = argv[2];        //Comando do Mymfs que deve ser executado
-
-        cout << "Comando solicitado: " << comando << endl;
 
         if(comando == "config"){
             config(caminhoComando);
@@ -33,7 +30,7 @@ int main(int argc, char **argv){
         }
 
         else if(comando == "export"){
-            string caminhoArquivoExport = argv[3];  //Caminho do arquivo a ser exportado para o diretório especficiado
+            string caminhoArquivoExport = argv[3];    //Caminho do arquivo a ser exportado para o diretório especficiado
             string caminhoDiretorioExport = argv[4];  //Caminho do diretório para onde o arquivo deve ser exportado
 
             exportarArquivo(caminhoComando, caminhoArquivoExport, caminhoDiretorioExport);
@@ -51,7 +48,6 @@ int main(int argc, char **argv){
 
 void config (string caminhoComando){
     string caminhoConfig = caminhoComando + "/config.txt";
-    cout << "Caminho do arquivo Config: " << caminhoConfig << endl;
 
     std::ifstream arquivoConfigExiste( caminhoConfig );
 
@@ -89,7 +85,6 @@ void importarArquivo(string caminhoComando, string caminhoArquivoImport){
             long sizeMax = 512000;          //Define o tamanho maximo dos arquivos como 500KB
 
             int numArquivos = ceil((end-begin)/512000.0); // Verifica quantos arquivos de 500 KB ou menos serão criados
-            cout << "Quantidade de arquivos arquivos: " << numArquivos<< " arquivos. Considerando tamanho max de 500 KB por arquivo. \n";
 
             char* buffer;
             infile.seekg(0);
@@ -98,8 +93,6 @@ void importarArquivo(string caminhoComando, string caminhoArquivoImport){
             string caminhoDiretorioString = caminhoComando + "/" + nomeDiretorio;
             char * caminhoDiretorio = new char [caminhoDiretorioString.length()+1];
             strcpy(caminhoDiretorio, caminhoDiretorioString.c_str()); //Realiza conversões necessárias para utilizar funcao de criar diretório
-
-            cout << "Caminho diretorio: " << caminhoDiretorio << endl;
 
             int erro = CreateDirectory(caminhoDiretorio, NULL);   //Cria o diretório para o arquivo a ser importado. Caso ocorra algum erro ou o diretório ja exista, retorna zero
 
@@ -186,15 +179,11 @@ void exportarArquivo(string caminhoComando, string caminhoArquivoExport, string 
                 std::ofstream combined_file(caminhoDiretorioExport);
                 for(int i=0; i < numArquivos; i++){
                     auto s = std::to_string(i);
-                    cout << "\nArquivo concatenado: " << s + ".txt" << " \n";
                     s = s+".txt";
                     //Percorre os arquivos de 0 a numArquivos concatenando-os no arquivo exportado
                     std::ifstream srce_file(caminhoComando + "/" + nomeDiretorioEncontrado + "/" + s) ;
                     if(srce_file){
                         combined_file << srce_file.rdbuf() ;
-                        if(combined_file){
-                            std::cout << "Arquivo " + s + " concatenado\n" ;
-                        }
                     }
                     else{
                         std::cerr << "Ocorreu um erro. O arquivo nao pode ser aberto " << s << '\n' ;
@@ -219,7 +208,7 @@ void exportarArquivo(string caminhoComando, string caminhoArquivoExport, string 
 void listAll(string caminhoComando){
     //Valida se o arquivo config existe no diretorio especificado
     std::ifstream arqConfigExiste(caminhoComando + "/config.txt");
-    if(arqConfigExiste.good()){
+    if(arqConfigExiste.good() && !caminhoComando.empty()){
         //Caso exista, percorre o arquivo buscando os nomes dos diretorios/arquivos e listando-os
         string nomeDiretorioEncontrado = "x";
         string qtdArquivosEncontrado;
@@ -227,7 +216,6 @@ void listAll(string caminhoComando){
         std::getline(arqConfigExiste, linhaConfig);
         if(linhaConfig.length() > 0){
             //Caso existam registros no arquivo config, eles serão buscados e exibidos
-            cout << "Arquivos encontrados: \n" << endl;
             nomeDiretorioEncontrado = linhaConfig.substr(0, linhaConfig.find(";"));
             while (!arqConfigExiste.eof() && !nomeDiretorioEncontrado.empty()){
                 //Exibe nome do diretório/arquivo
@@ -236,7 +224,6 @@ void listAll(string caminhoComando){
                 std::getline(arqConfigExiste, linhaConfig);
                 nomeDiretorioEncontrado = linhaConfig.substr(0, linhaConfig.find(";"));
             }
-            cout << "\nFim da lista de arquivos encontrados. \n" << endl;
         }
         else{
             cout << "Nao ha arquivos salvos pelo Mymfs!" << endl;
