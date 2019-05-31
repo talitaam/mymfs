@@ -34,7 +34,7 @@
 		</Compiler>
 		<Unit filename="comandos.cpp" />
 		<Unit filename="comandos.h" />
-		<Unit filename="main.cpp" />
+		<Unit filename="mymfs.cpp" />
 		<Extensions>
 			<code_completion />
 			<envvars />
