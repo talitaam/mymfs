@@ -96,7 +96,7 @@ void importarArquivo(string caminhoComando, string caminhoArquivoImport) {
 				}
 
 				ofstream arqConfig(caminhoComando + "/mymfs.config", ios_base::app | ios_base::out);
-				string linhaConfig = nomeDiretorio + ";" + to_string(numArquivos) + "\n";
+				string linhaConfig = nomeDiretorio + " " + to_string(numArquivos) + "\n";
 				arqConfig << linhaConfig; //Adiciona o arquivo importado no arquivo de configuração (nomeArquivo;quantidadeArquivos)
 				arqConfig.close();
 				cout << "O arquivo foi importado para o Mymfs com sucesso." << endl;
@@ -130,9 +130,9 @@ string verificarArquivoExisteEmConfig(string caminhoComando, string nomeArquivo)
 	do {
 		//Percorre o arquivo config até o final ou até encontrar o arquivo a ser exportado
 		getline(arqConfig, linhaConfig);
-		nomeDiretorioEncontrado = linhaConfig.substr(0, linhaConfig.find(";"));
-		qtdArquivosEncontrado = linhaConfig.substr(linhaConfig.find(";") + 1,
-			(linhaConfig.size() - linhaConfig.find(";")));
+		nomeDiretorioEncontrado = linhaConfig.substr(0, linhaConfig.find(" "));
+		qtdArquivosEncontrado = linhaConfig.substr(linhaConfig.find(" ") + 1,
+			(linhaConfig.size() - linhaConfig.find(" ")));
 	} while (strcmp(nomeDiretorioEncontrado.c_str(), nomeDiretorioBuscado.c_str()) != 0 &&
 		!arqConfig.eof() && !nomeDiretorioEncontrado.empty());
 
@@ -159,9 +159,9 @@ void exportarArquivo(string caminhoComando, string nomeArquivoExport, string cam
 		//Verifica se encontrou o diretorio do arquivo a ser exportado
 		if (!linhaConfig.empty()) {
 
-			nomeDiretorioEncontrado = linhaConfig.substr(0, linhaConfig.find(";"));
-			qtdArquivosEncontrado = linhaConfig.substr(linhaConfig.find(";") + 1,
-				(linhaConfig.size() - linhaConfig.find(";")));
+			nomeDiretorioEncontrado = linhaConfig.substr(0, linhaConfig.find(" "));
+			qtdArquivosEncontrado = linhaConfig.substr(linhaConfig.find(" ") + 1,
+				(linhaConfig.size() - linhaConfig.find(" ")));
 
 			if (!nomeDiretorioEncontrado.empty() && !qtdArquivosEncontrado.empty()) {
 
@@ -215,13 +215,14 @@ void listAll(string caminhoComando) {
 		getline(arqConfig, linhaConfig);
 		if (linhaConfig.length() > 0) {
 			//Caso existam registros no arquivo config, eles serão buscados e exibidos
-			nomeDiretorioEncontrado = linhaConfig.substr(0, linhaConfig.find(";"));
+			nomeDiretorioEncontrado = linhaConfig.substr(0, linhaConfig.find(" "));
+			nomeDiretorioEncontrado = nomeDiretorioEncontrado.substr(nomeDiretorioEncontrado.find("-") + 1, (nomeDiretorioEncontrado.size() - nomeDiretorioEncontrado.find("-")));
 			while (!arqConfig.eof() && !nomeDiretorioEncontrado.empty()) {
 				//Exibe nome do diretório/arquivo
 				cout << nomeDiretorioEncontrado + ".txt" << endl;
 				string linhaConfig;
 				getline(arqConfig, linhaConfig);
-				nomeDiretorioEncontrado = linhaConfig.substr(0, linhaConfig.find(";"));
+				nomeDiretorioEncontrado = linhaConfig.substr(0, linhaConfig.find(" "));
 			}
 		}
 		else {
