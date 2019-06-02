@@ -43,6 +43,11 @@ void importarArquivo(string caminhoComando, string caminhoArquivoImport) {
 		return;
 	}
 	if (end < 50000) {                          //Apenas permite a importação se o arquivo de config for menor que 50KB
+
+		if (!fsys::exists(caminhoComando + "/files")) {
+			fsys::create_directory(caminhoComando + "/files");
+		}
+
 		if (!caminhoArquivoImport.empty()) {
 			ifstream infile(caminhoArquivoImport, ifstream::binary);
 			begin = infile.tellg();
@@ -59,7 +64,7 @@ void importarArquivo(string caminhoComando, string caminhoArquivoImport) {
 			//Obtem o nome do diretório a ser criado para o arquivo atraves do seu nome
 			string extensaoArquivo = caminhoArquivoImport.substr(caminhoArquivoImport.find(".") + 1, (caminhoArquivoImport.size() - caminhoArquivoImport.find(";")));
 			string nomeDiretorio = extensaoArquivo + "-" + caminhoArquivoImport.substr(0, caminhoArquivoImport.find("."));
-			string caminhoDiretorioString = caminhoComando + "/" + nomeDiretorio;
+			string caminhoDiretorioString = caminhoComando + "/files/" + nomeDiretorio;
 
 			int erro = fsys::create_directory(caminhoDiretorioString);   //Cria o diretório para o arquivo a ser importado. Caso ocorra algum erro ou o diretório ja exista, retorna zero
 
@@ -172,7 +177,7 @@ void exportarArquivo(string caminhoComando, string nomeArquivoExport, string cam
 						auto s = to_string(i);
 						s = s + ".txt";
 						//Percorre os arquivos de 0 a numArquivos concatenando-os no arquivo exportado
-						ifstream srce_file(caminhoComando + "/" + nomeDiretorioEncontrado + "/" + s);
+						ifstream srce_file(caminhoComando + "/files/" + nomeDiretorioEncontrado + "/" + s);
 						if (srce_file) {
 							combined_file << srce_file.rdbuf();
 						}
