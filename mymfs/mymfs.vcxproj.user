@@ -4,7 +4,7 @@
     <ShowAllFiles>false</ShowAllFiles>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LocalDebuggerCommandArguments>"C:\Temp" import "texto.txt"</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>"C:\Temp" export "texto.seila" "C:\Users\Gabriel Haddad\Desktop\so\texto.seila"</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
 </Project>

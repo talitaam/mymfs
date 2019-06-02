@@ -10,10 +10,16 @@
 namespace fsys = std::experimental::filesystem;
 using namespace std;
 
+bool mymfsEstaConfigurado(string caminhoComando) {
+	if (caminhoComando.empty())
+		return false;
+	return fsys::exists(caminhoComando + "/mymfs.config");
+}
+
 void config(string caminhoComando) {
 	string caminhoConfig = caminhoComando + "/mymfs.config";
 
-	if (fsys::exists(caminhoConfig)) {              //Verifica se o arquivo Config ja existe no caminho especificado
+	if (mymfsEstaConfigurado(caminhoComando)) {   //Verifica se o arquivo Config ja existe no caminho especificado
 		cout << "O Mymfs ja esta configurado nesta unidade." << endl;
 	}
 	else {
@@ -26,7 +32,7 @@ void config(string caminhoComando) {
 void importarArquivo(string caminhoComando, string caminhoArquivoImport) {
 	streampos begin, end, pos;
 	ifstream arqConfigExiste(caminhoComando + "/mymfs.config"); // Verifica se o arquivo Config existe
-	if (fsys::exists(caminhoComando + "/mymfs.config")) {
+	if (mymfsEstaConfigurado(caminhoComando)) {
 		arqConfigExiste.seekg(0);              //Busca o fim do arquivo para verificar o tamanho do mesmo
 		arqConfigExiste.seekg(0, ios::end);
 		end = arqConfigExiste.tellg();
@@ -50,12 +56,12 @@ void importarArquivo(string caminhoComando, string caminhoArquivoImport) {
 			char* buffer;
 			infile.seekg(0);
 
-			string nomeDiretorio = caminhoArquivoImport.substr(0, caminhoArquivoImport.find(".")); //Obtem o nome do diretório a ser criado para o arquivo atraves do seu nome
+			//Obtem o nome do diretório a ser criado para o arquivo atraves do seu nome
+			string extensaoArquivo = caminhoArquivoImport.substr(caminhoArquivoImport.find(".") + 1, (caminhoArquivoImport.size() - caminhoArquivoImport.find(";")));
+			string nomeDiretorio = extensaoArquivo + "-" + caminhoArquivoImport.substr(0, caminhoArquivoImport.find("."));
 			string caminhoDiretorioString = caminhoComando + "/" + nomeDiretorio;
-			char * caminhoDiretorio = new char[caminhoDiretorioString.length() + 1];
-			strcpy(caminhoDiretorio, caminhoDiretorioString.c_str()); //Realiza conversões necessárias para utilizar funcao de criar diretório
 
-			int erro = fsys::create_directory(caminhoDiretorio);   //Cria o diretório para o arquivo a ser importado. Caso ocorra algum erro ou o diretório ja exista, retorna zero
+			int erro = fsys::create_directory(caminhoDiretorioString);   //Cria o diretório para o arquivo a ser importado. Caso ocorra algum erro ou o diretório ja exista, retorna zero
 
 			if (erro != 0) {           //Caso nao ocorram erros, cria os arquivos de 500KB ou menos
 				for (int i = 0; i < numArquivos; i++) {
@@ -106,52 +112,81 @@ void importarArquivo(string caminhoComando, string caminhoArquivoImport) {
 	}
 }
 
-void exportarArquivo(string caminhoComando, string caminhoArquivoExport, string caminhoDiretorioExport) {
+string verificarArquivoExisteEmConfig(string caminhoComando, string nomeArquivo) {
+
+	ifstream arqConfig(caminhoComando + "/mymfs.config");
+
+	string extensaoArquivo = nomeArquivo.substr(nomeArquivo.find(".") + 1, (nomeArquivo.size() - nomeArquivo.find(";")));
+	string nomeDiretorioBuscado = extensaoArquivo + "-" + nomeArquivo.substr(0, nomeArquivo.find("."));   //Obtem o nome do diretorio atraves do nome do arquivo
+	string nomeDiretorioEncontrado;
+	string qtdArquivosEncontrado;
+	string linhaConfig;
+
+	do {
+		//Percorre o arquivo config até o final ou até encontrar o arquivo a ser exportado
+		getline(arqConfig, linhaConfig);
+		nomeDiretorioEncontrado = linhaConfig.substr(0, linhaConfig.find(";"));
+		qtdArquivosEncontrado = linhaConfig.substr(linhaConfig.find(";") + 1,
+			(linhaConfig.size() - linhaConfig.find(";")));
+	} while (strcmp(nomeDiretorioEncontrado.c_str(), nomeDiretorioBuscado.c_str()) != 0 &&
+		!arqConfig.eof() && !nomeDiretorioEncontrado.empty());
+
+	if (strcmp(nomeDiretorioEncontrado.c_str(), nomeDiretorioBuscado.c_str()) == 0 &&
+		!nomeDiretorioEncontrado.empty() && !qtdArquivosEncontrado.empty()) {
+		return linhaConfig;
+	}
+
+	return "";
+}
+
+void exportarArquivo(string caminhoComando, string nomeArquivoExport, string caminhoDiretorioExport) {
 	ifstream arqConfigExiste(caminhoComando + "/mymfs.config");
 
 	//Verifica se o arquivo de configuração e se o arquivo a ser exportado existem
-	if (!caminhoArquivoExport.empty() && !caminhoDiretorioExport.empty() &&
-		fsys::exists(caminhoComando + "/mymfs.config") && fsys::exists(caminhoArquivoExport)) {
-		string nomeDiretorioBuscado = caminhoArquivoExport.substr(0, caminhoArquivoExport.find("."));   //Obtem o nome do diretorio atraves do nome do arquivo
+	if (!nomeArquivoExport.empty() && !caminhoDiretorioExport.empty() && mymfsEstaConfigurado(caminhoComando)) {
 		string nomeDiretorioEncontrado;
 		string qtdArquivosEncontrado;
 
-		do {
-			//Percorre o arquivo config até o final ou até encontrar o arquivo a ser exportado
-			string linhaConfig;
-			getline(arqConfigExiste, linhaConfig);
+		//Percorre o arquivoConfig para obter a linha de configuração do arquivo a ser exportado
+		string linhaConfig = verificarArquivoExisteEmConfig(caminhoComando, nomeArquivoExport);
+
+
+		//Verifica se encontrou o diretorio do arquivo a ser exportado
+		if (!linhaConfig.empty()) {
+
 			nomeDiretorioEncontrado = linhaConfig.substr(0, linhaConfig.find(";"));
 			qtdArquivosEncontrado = linhaConfig.substr(linhaConfig.find(";") + 1,
 				(linhaConfig.size() - linhaConfig.find(";")));
-		} while (strcmp(nomeDiretorioEncontrado.c_str(), nomeDiretorioBuscado.c_str()) != 0 &&
-			!arqConfigExiste.eof() && !nomeDiretorioEncontrado.empty());
 
-		//Verifica se encontrou o diretorio do arquivo a ser exportado
-		if (strcmp(nomeDiretorioEncontrado.c_str(), nomeDiretorioBuscado.c_str()) == 0 &&
-			!nomeDiretorioEncontrado.empty() && !qtdArquivosEncontrado.empty()) {
-			int numArquivos = stoi(qtdArquivosEncontrado);
-			if (fsys::exists(caminhoDiretorioExport)) { //Verifica se o arquivo a ser exportado existe
-				cout << "O arquivo a ser exportado ja existe na pasta destino ("
-					<< caminhoDiretorioExport << "), por favor indique outro destino." << endl; //EDITADO TALITA
+			if (!nomeDiretorioEncontrado.empty() && !qtdArquivosEncontrado.empty()) {
+
+				int numArquivos = stoi(qtdArquivosEncontrado);
+				if (fsys::exists(caminhoDiretorioExport)) { //Verifica se o arquivo a ser exportado existe
+					cout << "O arquivo a ser exportado ja existe na pasta destino ("
+						<< caminhoDiretorioExport << "), por favor indique outro destino." << endl; //EDITADO TALITA
+				}
+				else {
+					//Caso exista, cria um arquivo no diretorio informado concatenando todos os arquivos de 500KB
+					ofstream combined_file(caminhoDiretorioExport);
+					for (int i = 0; i < numArquivos; i++) {
+						auto s = to_string(i);
+						s = s + ".txt";
+						//Percorre os arquivos de 0 a numArquivos concatenando-os no arquivo exportado
+						ifstream srce_file(caminhoComando + "/" + nomeDiretorioEncontrado + "/" + s);
+						if (srce_file) {
+							combined_file << srce_file.rdbuf();
+						}
+						else {
+							cerr << "Ocorreu um erro. O arquivo nao pode ser aberto " << s << '\n';
+						}
+						srce_file.close();
+					}
+					combined_file.close();
+					cout << "O arquivo foi exportado do Mymfs com sucesso." << endl;
+				}
 			}
 			else {
-				//Caso exista, cria um arquivo no diretorio informado concatenando todos os arquivos de 500KB
-				ofstream combined_file(caminhoDiretorioExport);
-				for (int i = 0; i < numArquivos; i++) {
-					auto s = to_string(i);
-					s = s + ".txt";
-					//Percorre os arquivos de 0 a numArquivos concatenando-os no arquivo exportado
-					ifstream srce_file(caminhoComando + "/" + nomeDiretorioEncontrado + "/" + s);
-					if (srce_file) {
-						combined_file << srce_file.rdbuf();
-					}
-					else {
-						cerr << "Ocorreu um erro. O arquivo nao pode ser aberto " << s << '\n';
-					}
-					srce_file.close();
-				}
-				combined_file.close();
-				cout << "O arquivo foi exportado do Mymfs com sucesso." << endl;
+				cout << "O arquivo nao foi encontrado no Mymfs, portanto nao foi exportado" << endl;
 			}
 		}
 		else {
@@ -166,21 +201,21 @@ void exportarArquivo(string caminhoComando, string caminhoArquivoExport, string 
 
 void listAll(string caminhoComando) {
 	//Valida se o arquivo config existe no diretorio especificado
-	ifstream arqConfigExiste(caminhoComando + "/mymfs.config");
-	if (!caminhoComando.empty() && fsys::exists(caminhoComando)) {
+	ifstream arqConfig(caminhoComando + "/mymfs.config");
+	if (!caminhoComando.empty() && mymfsEstaConfigurado(caminhoComando)) {
 		//Caso exista, percorre o arquivo buscando os nomes dos diretorios/arquivos e listando-os
 		string nomeDiretorioEncontrado = "x";
 		string qtdArquivosEncontrado;
 		string linhaConfig;
-		getline(arqConfigExiste, linhaConfig);
+		getline(arqConfig, linhaConfig);
 		if (linhaConfig.length() > 0) {
 			//Caso existam registros no arquivo config, eles serão buscados e exibidos
 			nomeDiretorioEncontrado = linhaConfig.substr(0, linhaConfig.find(";"));
-			while (!arqConfigExiste.eof() && !nomeDiretorioEncontrado.empty()) {
+			while (!arqConfig.eof() && !nomeDiretorioEncontrado.empty()) {
 				//Exibe nome do diretório/arquivo
 				cout << nomeDiretorioEncontrado + ".txt" << endl;
 				string linhaConfig;
-				getline(arqConfigExiste, linhaConfig);
+				getline(arqConfig, linhaConfig);
 				nomeDiretorioEncontrado = linhaConfig.substr(0, linhaConfig.find(";"));
 			}
 		}
