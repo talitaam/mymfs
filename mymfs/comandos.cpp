@@ -530,30 +530,23 @@ void ultimas100Linhas(string caminhoComando, string caminhoArquivoToRead) {
 						arqPesquisa.seekg(0, ios::end);
 						int pos = arqPesquisa.tellg();
 						while (pos > 0)
-							{
+						{
 							if (arqPesquisa.eof()) {
 								arqPesquisa.seekg(--pos);
 								if ((arqPesquisa.get() == '\n') || (i == numArquivos - 1)) {
-									contaLinha++;
-									arqPesquisa.unget();
-									if (contaLinha == linhasParaSeremLidas) {
+									if (contaLinha++ == linhasParaSeremLidas)
 										break;
-									}
-
 								}
 							}
 							else {
 								arqPesquisa.seekg(--pos);
 								if ((arqPesquisa.get() == '\n')) {
-									contaLinha++;
-									arqPesquisa.unget();
-									if (contaLinha == linhasParaSeremLidas) {
+									if (contaLinha++ == linhasParaSeremLidas)
 										break;
-									}
 								}
 							}
 						}
-						//if (contaLinha == linhasParaSeremLidas + 1) {
+						if (contaLinha == linhasParaSeremLidas + 1) {
 							arqPesquisa.seekg(pos);
 							getline(arqPesquisa, linha);
 							while (!arqPesquisa.eof()) {
@@ -602,9 +595,9 @@ void ultimas100Linhas(string caminhoComando, string caminhoArquivoToRead) {
 									arqPesquisa.close();
 								}
 							}
-						//}
-						//else
-							//arqPesquisa.close();
+						}
+						else
+							arqPesquisa.close();
 					}
 					else {
 						cerr << "Ocorreu um erro. O arquivo nao pode ser aberto " << s << '\n';
