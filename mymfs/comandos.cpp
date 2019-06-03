@@ -4,16 +4,20 @@
 #include <fstream>
 #include <math.h>
 #include <string>
-#include <windows.h>
 #include <filesystem>
 
-namespace fsys = std::experimental::filesystem;
+namespace fsys = std::filesystem;
 using namespace std;
 
 bool mymfsEstaConfigurado(string caminhoComando) {
 	if (caminhoComando.empty())
 		return false;
 	return fsys::exists(caminhoComando + "/mymfs.config");
+}
+
+bool arquivoEstaVazio(std::ifstream& pFile)
+{
+	return pFile.peek() == std::ifstream::traits_type::eof();
 }
 
 void config(string caminhoComando) {
@@ -96,7 +100,15 @@ void importarArquivo(string caminhoComando, string caminhoArquivoImport) {
 				}
 
 				ofstream arqConfig(caminhoComando + "/mymfs.config", ios_base::app | ios_base::out);
-				string linhaConfig = nomeDiretorio + " " + to_string(numArquivos) + "\n";
+				ifstream arqConfigVazio(caminhoComando + "/mymfs.config");
+				string linhaConfig;
+				if (arquivoEstaVazio(arqConfigVazio)) {
+					linhaConfig = nomeDiretorio + " " + to_string(numArquivos);
+				}
+				else {
+					linhaConfig = "\n" + nomeDiretorio + " " + to_string(numArquivos);
+				}
+				arqConfigVazio.close();
 				arqConfig << linhaConfig; //Adiciona o arquivo importado no arquivo de configuração (nomeArquivo;quantidadeArquivos)
 				arqConfig.close();
 				cout << "O arquivo foi importado para o Mymfs com sucesso." << endl;
@@ -113,7 +125,7 @@ void importarArquivo(string caminhoComando, string caminhoArquivoImport) {
 		}
 	}
 	else {
-		cout << "Nao foi possivel importar o arquivo. Arquivo mymfs.config está cheio - Mymfs." << endl;
+		cout << "Nao foi possivel importar o arquivo. Arquivo mymfs.config esta cheio - Mymfs." << endl;
 	}
 }
 
@@ -121,7 +133,7 @@ string verificarArquivoExisteEmConfig(string caminhoComando, string nomeArquivo)
 
 	ifstream arqConfig(caminhoComando + "/mymfs.config");
 
-	string extensaoArquivo = nomeArquivo.substr(nomeArquivo.find(".") + 1, (nomeArquivo.size() - nomeArquivo.find(";")));
+	string extensaoArquivo = nomeArquivo.substr(nomeArquivo.find(".") + 1, (nomeArquivo.size() - nomeArquivo.find(".")));
 	string nomeDiretorioBuscado = extensaoArquivo + "-" + nomeArquivo.substr(0, nomeArquivo.find("."));   //Obtem o nome do diretorio atraves do nome do arquivo
 	string nomeDiretorioEncontrado;
 	string qtdArquivosEncontrado;
@@ -223,6 +235,7 @@ void listAll(string caminhoComando) {
 				string linhaConfig;
 				getline(arqConfig, linhaConfig);
 				nomeDiretorioEncontrado = linhaConfig.substr(0, linhaConfig.find(" "));
+				nomeDiretorioEncontrado = nomeDiretorioEncontrado.substr(nomeDiretorioEncontrado.find("-") + 1, (nomeDiretorioEncontrado.size() - nomeDiretorioEncontrado.find("-")));
 			}
 		}
 		else {
@@ -232,5 +245,87 @@ void listAll(string caminhoComando) {
 	else {
 		cout << "Arquivos nao listados do Mymfs pois o caminho informado esta vazio ou ambiente "
 			<< "ainda nao foi configurado." << endl;
+	}
+}
+
+string converterLinhaConfigParaNomeArquivo(string linhaConfig) {
+	string nomeArquivoEncontrado = linhaConfig.substr(0, linhaConfig.find(" "));
+	string extensaoArquivoEncontrado = nomeArquivoEncontrado.substr(0, nomeArquivoEncontrado.find("-"));
+	nomeArquivoEncontrado = nomeArquivoEncontrado.substr(nomeArquivoEncontrado.find("-") + 1, (nomeArquivoEncontrado.size() - nomeArquivoEncontrado.find("-")));
+	return nomeArquivoEncontrado + "." + extensaoArquivoEncontrado;
+}
+
+void remove(string caminhoComando, string nomeArquivo) {
+	ifstream arqConfig(caminhoComando + "/mymfs.config");
+
+	if (nomeArquivo.empty()) {
+		cout << "Deve-se informar o nome do arquivo";
+		return;
+	}
+
+	if (mymfsEstaConfigurado(caminhoComando)) {
+		string linhaConfig = verificarArquivoExisteEmConfig(caminhoComando, nomeArquivo);
+		string linhaConfigNovo;
+		string configNovo;
+
+		if (!linhaConfig.empty()) {
+
+			getline(arqConfig, linhaConfigNovo);
+			
+			string nomeArquivoEncontrado = converterLinhaConfigParaNomeArquivo(linhaConfigNovo);
+			if (nomeArquivoEncontrado != nomeArquivo) {
+				configNovo += linhaConfigNovo;
+			}
+
+			if (linhaConfigNovo.length() > 0) {
+				//Caso existam registros no arquivo config, eles serão buscados e exibidos
+				while (!arqConfig.eof() && !linhaConfigNovo.empty()) {
+					getline(arqConfig, linhaConfigNovo);
+
+					nomeArquivoEncontrado = converterLinhaConfigParaNomeArquivo(linhaConfigNovo);
+					if (nomeArquivoEncontrado != nomeArquivo) {
+						configNovo += "\n" + linhaConfigNovo;
+					}
+				}
+			}
+			arqConfig.close();
+
+			ofstream arquivoConfig(caminhoComando + "/mymfs.config", std::ofstream::out | std::ofstream::trunc);
+			arquivoConfig << configNovo;
+			arquivoConfig.close();
+
+			string diretorioArquivoRemover = linhaConfig.substr(0, linhaConfig.find(" "));
+			fsys::remove_all(caminhoComando + "/files/" + diretorioArquivoRemover);
+
+			cout << "O arquivo ( " + nomeArquivo + " ) foi removido com sucesso." << endl;
+		}
+		else {
+			arqConfig.close();
+			cout << "O arquivo informado nao esta gravado no Mymfs, portanto nao foi removido";
+		}
+	}
+	else {
+		arqConfig.close();
+		cout << "Os arquivos nao foram removidos pois o Mymfs nao esta configurado no caminho informado" << endl;
+	}
+}
+
+
+void removeAll(string caminhoComando) {
+	ofstream arquivoConfig;
+	if (mymfsEstaConfigurado(caminhoComando)) {
+		if (fsys::exists(caminhoComando + "/files")) {
+			fsys::remove_all(caminhoComando + "/files");
+			arquivoConfig.open(caminhoComando + "/mymfs.config", std::ofstream::out | std::ofstream::trunc);
+			arquivoConfig.close();
+			cout << "Os arquivos do Mymfs foram removidos com sucesso." << endl;
+			return;
+		}
+		else {
+			cout << "O Mymfs nao possui arquivos gravados, portanto nao foram removidos.";
+		}
+	}
+	else {
+		cout << "Os arquivos nao foram removidos pois o Mymfs nao esta configurado no caminho informado" << endl;
 	}
 }
