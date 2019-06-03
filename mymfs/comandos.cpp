@@ -495,16 +495,16 @@ void primeiras100Linhas(string caminhoComando, string caminhoArquivoToRead) {
 void ultimas100Linhas(string caminhoComando, string caminhoArquivoToRead) {
 	ifstream arqConfigExiste(caminhoComando + "/mymfs.config");
 
-	//Verifica se o arquivo de configuração e se o arquivo a ser exportado existem
+	//Verifica se o arquivo de configuração e se o arquivo existem
 	if (!caminhoArquivoToRead.empty() && mymfsEstaConfigurado(caminhoComando)) {
 		string nomeDiretorioEncontrado;
 		string qtdArquivosEncontrado;
 
-		//Percorre o arquivoConfig para obter a linha de configuração do arquivo a ser exportado
+		//Percorre o arquivoConfig para obter a linha de configuração do arquivo
 		string linhaConfig = verificarArquivoExisteEmConfig(caminhoComando, caminhoArquivoToRead);
 
 
-		//Verifica se encontrou o diretorio do arquivo a ser exportado
+		//Verifica se encontrou o diretorio do arquivo
 		if (!linhaConfig.empty()) {
 
 			nomeDiretorioEncontrado = linhaConfig.substr(0, linhaConfig.find(" "));
@@ -515,98 +515,80 @@ void ultimas100Linhas(string caminhoComando, string caminhoArquivoToRead) {
 
 				int numArquivos = stoi(qtdArquivosEncontrado);
 				int contaLinha = 0;
+				int linhasUltimoArquivo = 0;
 				string linha = "";
 				string ultimaLinha = "";
-				int numArquivosLidos = 0;
 				for (int i = numArquivos - 1; i >= 0; i--) {
-					numArquivosLidos++;
+					linhasUltimoArquivo = 0;
 					auto s = to_string(i);
 					s = s + ".txt";
-					int linhasParaSeremLidas = 100 - contaLinha;
-					contaLinha = 0;
-					//Percorre os arquivos de 0 a numArquivos concatenando-os no arquivo exportado
 					ifstream arqPesquisa(caminhoComando + "/files/" + nomeDiretorioEncontrado + "/" + s);
 					if (arqPesquisa) {
-						arqPesquisa.seekg(0, ios::end);
-						int pos = arqPesquisa.tellg();
-						while (pos > 0)
-						{
-							if (arqPesquisa.eof()) {
-								arqPesquisa.seekg(--pos);
-								if ((arqPesquisa.get() == '\n') || (i == numArquivos - 1)) {
-									if (contaLinha++ == linhasParaSeremLidas)
-										break;
-								}
-							}
-							else {
-								arqPesquisa.seekg(--pos);
-								if ((arqPesquisa.get() == '\n')) {
-									if (contaLinha++ == linhasParaSeremLidas)
-										break;
-								}
-							}
-						}
-						if (contaLinha == linhasParaSeremLidas + 1) {
-							arqPesquisa.seekg(pos);
+						getline(arqPesquisa, linha);
+						do {
+							linhasUltimoArquivo++;
 							getline(arqPesquisa, linha);
-							while (!arqPesquisa.eof()) {
-								cout << linha << endl;
-								getline(arqPesquisa, linha);
-							}
-							if (arqPesquisa.eof()) {
-								arqPesquisa.seekg(1, ios::end);
-								if (i == numArquivos - 1) {
-									cout << linha << endl;
-								}
-								else if (arqPesquisa.get() != '\n') {
-									ultimaLinha = linha;
-								}
-							}
-							arqPesquisa.close();
-							if (numArquivosLidos > 1) {
-								while (i < numArquivos) {
-									i++;
-									s = to_string(i);
-									s = s + ".txt";
-									ifstream arqPesquisa(caminhoComando + "/files/" + nomeDiretorioEncontrado + "/" + s);
-									if (arqPesquisa) {
-										getline(arqPesquisa, linha);
-										while (!arqPesquisa.eof()) {
-											if (ultimaLinha.length() > 0) {
-												linha = ultimaLinha + linha;
-												ultimaLinha = "";
-												cout << linha << endl;
-											}
-											else
-												cout << linha << endl;
-											getline(arqPesquisa, linha);
-										}
-										if (arqPesquisa.eof()) {
-											if (i == numArquivos - 1) {
-												cout << linha << endl;
-											}
-											else {
-												arqPesquisa.seekg(1, ios::end);
-												if (arqPesquisa.get() != '\n')
-													ultimaLinha = linha;
-											}
-										}
-									}
-									arqPesquisa.close();
-								}
-							}
-						}
-						else
-							arqPesquisa.close();
+						} while (!arqPesquisa.eof());
 					}
-					else {
-						cerr << "Ocorreu um erro. O arquivo nao pode ser aberto " << s << '\n';
+					arqPesquisa.close();
+					if (linhasUltimoArquivo >= 100 && contaLinha == 0) {
+						int comecaLeitura = linhasUltimoArquivo - 100;
+						ifstream arqPesquisa(caminhoComando + "/files/" + nomeDiretorioEncontrado + "/" + s);
+						if (arqPesquisa) {
+							while (!arqPesquisa.eof()) {
+								getline(arqPesquisa, linha);
+								if (comecaLeitura == 0)
+									cout << linha << endl;
+								else
+									comecaLeitura--;
+							}
+							i = -2;
+						}
+						arqPesquisa.close();
+					}
+					else if ((linhasUltimoArquivo + contaLinha) >= 100) {
+						int faltaCompletarContaLinha = 100 - contaLinha;
+						int comecaLeitura = linhasUltimoArquivo - faltaCompletarContaLinha;
+						for (int j = i; j < numArquivos; j++) {
+							auto k = to_string(j);
+							k = k + ".txt";
+							ifstream arqPesquisa(caminhoComando + "/files/" + nomeDiretorioEncontrado + "/" + k);
+							if (arqPesquisa) {
+								getline(arqPesquisa, linha);
+								do {
+									if (comecaLeitura == 0) {
+										if (ultimaLinha.length() > 0) {
+											linha = ultimaLinha + linha;
+											ultimaLinha = "";
+											cout << linha << endl;
+										}
+										else
+											cout << linha << endl;
+									}
+									else
+										comecaLeitura--;
+									getline(arqPesquisa, linha);
+								} while (!arqPesquisa.eof());
+								if (arqPesquisa.eof()) {
+									arqPesquisa.seekg(1, ios::end);
+									if (arqPesquisa.get() != '\n' && j < numArquivos - 1) {
+										ultimaLinha = linha;
+									}
+								}
+							}
+							arqPesquisa.close();
+						}
+						i = -2;
+					}
+					else if ((linhasUltimoArquivo + contaLinha) < 100) {
+						contaLinha += linhasUltimoArquivo;
 					}
 				}
 			}
 			else {
 				cout << "O arquivo nao foi encontrado no Mymfs, portanto nao foi exportado" << endl;
 			}
+
 		}
 		else {
 			cout << "O arquivo nao foi encontrado no Mymfs, portanto nao foi exportado" << endl;
@@ -616,4 +598,5 @@ void ultimas100Linhas(string caminhoComando, string caminhoArquivoToRead) {
 		cout << "Arquivo nao exportado do Mymfs pois o caminho informado esta vazio ou ambiente"
 			<< " ainda nao foi configurado." << endl;
 	}
+
 }
