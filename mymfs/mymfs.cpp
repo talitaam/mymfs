@@ -33,6 +33,25 @@ int main(int argc, char **argv) {
 
 			exportarArquivo(caminhoComando, caminhoArquivoExport, caminhoDiretorioExport);
 		}
+		else if (comando == "grep") {
+			string palavra = argv[3];    //Palavra que será procurado no arquivo
+			string caminhoArquivoToRead = argv[4];  //Caminho do arquivo que será pesquisado
+			
+			procuraPalavra(caminhoComando, palavra, caminhoArquivoToRead);
+		}
+
+		else if (comando == "head100") {
+			string caminhoArquivoToRead = argv[3];  //Caminho do arquivo que será lido
+
+			primeiras100Linhas(caminhoComando, caminhoArquivoToRead);
+		}
+
+		else if (comando == "tail100") {
+			string caminhoArquivoToRead = argv[3];  //Caminho do arquivo que será lido
+
+			void ultimas100Linhas(string caminhoComando, string caminhoArquivoToRead);
+		}
+
 		else if (comando == "listall") {
 			listAll(caminhoComando);
 		}

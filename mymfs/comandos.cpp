@@ -4,6 +4,7 @@
 #include <fstream>
 #include <math.h>
 #include <string>
+#include <stdio.h>
 #include <windows.h>
 #include <filesystem>
 
@@ -233,4 +234,280 @@ void listAll(string caminhoComando) {
 		cout << "Arquivos nao listados do Mymfs pois o caminho informado esta vazio ou ambiente "
 			<< "ainda nao foi configurado." << endl;
 	}
+}
+
+void procuraPalavra(string caminhoComando, string palavra, string caminhoArquivoToRead) {
+	ifstream arqConfigExiste(caminhoComando + "/mymfs.config");
+
+	//Verifica se o arquivo de configuração e se o arquivo a ser exportado existem
+	if (!caminhoArquivoToRead.empty() && mymfsEstaConfigurado(caminhoComando)) {
+		string nomeDiretorioEncontrado;
+		string qtdArquivosEncontrado;
+
+		//Percorre o arquivoConfig para obter a linha de configuração do arquivo a ser exportado
+		string linhaConfig = verificarArquivoExisteEmConfig(caminhoComando, caminhoArquivoToRead);
+
+
+		//Verifica se encontrou o diretorio do arquivo a ser exportado
+		if (!linhaConfig.empty()) {
+
+			nomeDiretorioEncontrado = linhaConfig.substr(0, linhaConfig.find(" "));
+			qtdArquivosEncontrado = linhaConfig.substr(linhaConfig.find(" ") + 1,
+				(linhaConfig.size() - linhaConfig.find(" ")));
+
+			if (!nomeDiretorioEncontrado.empty() && !qtdArquivosEncontrado.empty()) {
+
+				int numArquivos = stoi(qtdArquivosEncontrado);
+				int contaLinha = 0;
+				string linha = "";
+				string ultimaLinha = "";
+				int i;
+				for (i = 0; i < numArquivos; i++) {
+					auto s = to_string(i);
+					s = s + ".txt";
+					//Percorre os arquivos de 0 a numArquivos concatenando-os no arquivo exportado
+					ifstream arqPesquisa(caminhoComando + "/files/" + nomeDiretorioEncontrado + "/" + s);
+					if (arqPesquisa) {
+						while (!arqPesquisa.eof()) {
+							getline(arqPesquisa, linha);
+							contaLinha++;
+							if (linha.length() > 0) {
+								if (ultimaLinha.length() > 0) {
+									linha = ultimaLinha + linha;
+									ultimaLinha = "";
+								}
+								//if (strstr(linhaConfig.c_str(), palavra.c_str()) != NULL)
+								//	break;
+								if (linha.find(palavra) != -1) {
+									cout << "Encontrado " << contaLinha << '\n' << endl;
+									i = numArquivos + 1;
+									break;
+								}
+							}
+						}
+						if (arqPesquisa.eof()) {
+							arqPesquisa.seekg(1, ios::end);
+							if (arqPesquisa.get() != '\n') {
+								ultimaLinha = linha;
+								contaLinha--;
+							}
+						}
+					}
+					else {
+						cerr << "Ocorreu um erro. O arquivo nao pode ser aberto " << s << '\n';
+					}
+					arqPesquisa.close();
+				}
+				if (i == numArquivos) {
+					cout << "Não Encontrado" << endl;
+				}
+				else {
+					cout << "O arquivo nao foi encontrado no Mymfs, portanto nao foi exportado" << endl;
+				}
+			}
+			else {
+				cout << "O arquivo nao foi encontrado no Mymfs, portanto nao foi exportado" << endl;
+			}
+		}
+		else {
+			cout << "Arquivo nao exportado do Mymfs pois o caminho informado esta vazio ou ambiente"
+				<< " ainda nao foi configurado." << endl;
+		}
+	}
+}
+
+void primeiras100Linhas(string caminhoComando, string caminhoArquivoToRead) {
+
+	ifstream arqConfigExiste(caminhoComando + "/mymfs.config");
+
+	//Verifica se o arquivo de configuração e se o arquivo a ser exportado existem
+	if (!caminhoArquivoToRead.empty() && mymfsEstaConfigurado(caminhoComando)) {
+		string nomeDiretorioEncontrado;
+		string qtdArquivosEncontrado;
+
+		//Percorre o arquivoConfig para obter a linha de configuração do arquivo a ser exportado
+		string linhaConfig = verificarArquivoExisteEmConfig(caminhoComando, caminhoArquivoToRead);
+
+
+		//Verifica se encontrou o diretorio do arquivo a ser exportado
+		if (!linhaConfig.empty()) {
+
+			nomeDiretorioEncontrado = linhaConfig.substr(0, linhaConfig.find(" "));
+			qtdArquivosEncontrado = linhaConfig.substr(linhaConfig.find(" ") + 1,
+				(linhaConfig.size() - linhaConfig.find(" ")));
+
+			if (!nomeDiretorioEncontrado.empty() && !qtdArquivosEncontrado.empty()) {
+
+				int numArquivos = stoi(qtdArquivosEncontrado);
+				int contaLinha = 0;
+				string linha = "";
+				string ultimaLinha = "";
+				for (int i = 0; i < numArquivos; i++) {
+					auto s = to_string(i);
+					s = s + ".txt";
+					//Percorre os arquivos de 0 a numArquivos concatenando-os no arquivo exportado
+					ifstream arqPesquisa(caminhoComando + "/files/" + nomeDiretorioEncontrado + "/" + s);
+					if (arqPesquisa) {
+						int loop = 0;
+						int condicao = 100 - contaLinha;
+						getline(arqPesquisa, linha);
+						while (loop < condicao && !arqPesquisa.eof()) {
+							contaLinha++;
+							loop++;
+							if (ultimaLinha.length() > 0) {
+								linha = ultimaLinha + linha;
+								ultimaLinha = "";
+								cout << linha << endl;
+							}
+							else if (!arqPesquisa.eof())
+								cout << linha << endl;
+							getline(arqPesquisa, linha);
+						}
+						if (arqPesquisa.eof()) {
+							arqPesquisa.seekg(1, ios::end);
+							if (i == numArquivos - 1) {
+								cout << linha << endl;
+							}
+							else if (arqPesquisa.get() != '\n') {
+								ultimaLinha = linha;
+								contaLinha--;
+							}
+						}
+						if (contaLinha == 100)
+							i = numArquivos;
+					}
+					else {
+						cerr << "Ocorreu um erro. O arquivo nao pode ser aberto " << s << '\n';
+					}
+					arqPesquisa.close();
+				}
+			}
+			else {
+				cout << "O arquivo nao foi encontrado no Mymfs, portanto nao foi exportado" << endl;
+			}
+		}
+		else {
+			cout << "O arquivo nao foi encontrado no Mymfs, portanto nao foi exportado" << endl;
+		}
+	}
+	else {
+		cout << "Arquivo nao exportado do Mymfs pois o caminho informado esta vazio ou ambiente"
+			<< " ainda nao foi configurado." << endl;
+	}
+
+}
+
+void ultimas100Linhas(string caminhoComando, string caminhoArquivoToRead) {
+	ifstream arqConfigExiste(caminhoComando + "/mymfs.config");
+
+	//Verifica se o arquivo de configuração e se o arquivo existem
+	if (!caminhoArquivoToRead.empty() && mymfsEstaConfigurado(caminhoComando)) {
+		string nomeDiretorioEncontrado;
+		string qtdArquivosEncontrado;
+
+		//Percorre o arquivoConfig para obter a linha de configuração do arquivo
+		string linhaConfig = verificarArquivoExisteEmConfig(caminhoComando, caminhoArquivoToRead);
+
+
+		//Verifica se encontrou o diretorio do arquivo
+		if (!linhaConfig.empty()) {
+
+			nomeDiretorioEncontrado = linhaConfig.substr(0, linhaConfig.find(" "));
+			qtdArquivosEncontrado = linhaConfig.substr(linhaConfig.find(" ") + 1,
+				(linhaConfig.size() - linhaConfig.find(" ")));
+
+			if (!nomeDiretorioEncontrado.empty() && !qtdArquivosEncontrado.empty()) {
+
+				int numArquivos = stoi(qtdArquivosEncontrado);
+				int contaLinha = 0;
+				int linhasUltimoArquivo = 0;
+				string linha = "";
+				string ultimaLinha = "";
+				for (int i = numArquivos - 1; i >= 0; i--) {
+					linhasUltimoArquivo = 0;
+					auto s = to_string(i);
+					s = s + ".txt";
+					ifstream arqPesquisa(caminhoComando + "/files/" + nomeDiretorioEncontrado + "/" + s);
+					if (arqPesquisa) {
+						getline(arqPesquisa, linha);
+						do {
+							linhasUltimoArquivo++;
+							getline(arqPesquisa, linha);
+						} while (!arqPesquisa.eof());
+						if (arqPesquisa.eof() && i < numArquivos - 1) {
+							arqPesquisa.seekg(1, ios::end);
+							if (arqPesquisa.get() != '\n') {
+								linhasUltimoArquivo--;
+							}
+						}
+					}
+					arqPesquisa.close();
+					if (linhasUltimoArquivo >= 100 && contaLinha == 0) {
+						int comecaLeitura = linhasUltimoArquivo - 100;
+						ifstream arqPesquisa(caminhoComando + "/files/" + nomeDiretorioEncontrado + "/" + s);
+						if (arqPesquisa) {
+							while (!arqPesquisa.eof()) {
+								getline(arqPesquisa, linha);
+								if (comecaLeitura == 0)
+									cout << linha << endl;
+								else
+									comecaLeitura--;
+							}
+							i = -1;
+						}
+						arqPesquisa.close();
+					}
+					else if ((linhasUltimoArquivo + contaLinha) >= 100) {
+						int faltaCompletarContaLinha = 100 - contaLinha;
+						int comecaLeitura = linhasUltimoArquivo - faltaCompletarContaLinha;
+						for (int j = i; j < numArquivos; j++) {
+							auto k = to_string(j);
+							ifstream arqPesquisa(caminhoComando + "/files/" + nomeDiretorioEncontrado + "/" + k);
+							if (arqPesquisa) {
+								getline(arqPesquisa, linha);
+								do {
+									if (comecaLeitura == 0) {
+										if (ultimaLinha.length() > 0) {
+											linha = ultimaLinha + linha;
+											ultimaLinha = "";
+											cout << linha << endl;
+										}
+										else
+											cout << linha << endl;
+									}
+									else
+										comecaLeitura--;
+									getline(arqPesquisa, linha);
+								} while (!arqPesquisa.eof());
+								if (arqPesquisa.eof()) {
+									arqPesquisa.seekg(1, ios::end);
+									if (arqPesquisa.get() != '\n' && j < numArquivos - 1) {
+										ultimaLinha = linha;
+									}
+								}
+							}
+							arqPesquisa.close();
+						}
+						i = -1;
+					}
+					else if ((linhasUltimoArquivo + contaLinha) < 100) {
+						contaLinha += linhasUltimoArquivo;
+					}
+				}
+
+			}
+			else {
+				cout << "O arquivo nao foi encontrado no Mymfs, portanto nao foi exportado" << endl;
+			}
+
+		}
+		else {
+			cout << "O arquivo nao foi encontrado no Mymfs, portanto nao foi exportado" << endl;
+		}
+	}
+	else {
+		cout << "Arquivo nao exportado do Mymfs pois o caminho informado esta vazio ou ambiente"
+			<< " ainda nao foi configurado." << endl;
+	}
+
 }
