@@ -287,7 +287,7 @@ void remove(string caminhoComando, string nomeArquivo) {
 			getline(arqConfig, linhaConfigNovo);
 
 			string nomeArquivoEncontrado = converterLinhaConfigParaNomeArquivo(linhaConfigNovo);
-			if (nomeArquivoEncontrado != nomeArquivo) {
+			if (strcmp(nomeArquivoEncontrado.c_str(), nomeArquivo.c_str())) {
 				configNovo += linhaConfigNovo;
 			}
 
@@ -297,7 +297,7 @@ void remove(string caminhoComando, string nomeArquivo) {
 					getline(arqConfig, linhaConfigNovo);
 
 					nomeArquivoEncontrado = converterLinhaConfigParaNomeArquivo(linhaConfigNovo);
-					if (nomeArquivoEncontrado != nomeArquivo) {
+					if (strcmp(nomeArquivoEncontrado.c_str(),nomeArquivo.c_str())) {
 						configNovo += "\n" + linhaConfigNovo;
 					}
 				}
