@@ -67,7 +67,17 @@ void importarArquivo(string caminhoComando, string caminhoArquivoImport) {
 
 			//Obtem o nome do diretório a ser criado para o arquivo atraves do seu nome
 			string extensaoArquivo = caminhoArquivoImport.substr(caminhoArquivoImport.find(".") + 1, (caminhoArquivoImport.size() - caminhoArquivoImport.find(";")));
-			string nomeDiretorio = extensaoArquivo + "-" + caminhoArquivoImport.substr(0, caminhoArquivoImport.find("."));
+			string nomeDiretorio = caminhoArquivoImport;
+
+			const size_t last_slash_idx = nomeDiretorio.find_last_of("\\/");
+			if (std::string::npos != last_slash_idx)
+			{
+				nomeDiretorio.erase(0, last_slash_idx + 1);
+			}
+
+			nomeDiretorio = extensaoArquivo + "-" + nomeDiretorio.substr(0, nomeDiretorio.find("."));
+			
+
 			string caminhoDiretorioString = caminhoComando + "/files/" + nomeDiretorio;
 
 			int erro = fsys::create_directory(caminhoDiretorioString);   //Cria o diretório para o arquivo a ser importado. Caso ocorra algum erro ou o diretório ja exista, retorna zero
