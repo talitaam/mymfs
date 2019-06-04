@@ -4,7 +4,7 @@
     <ShowAllFiles>true</ShowAllFiles>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LocalDebuggerCommandArguments>"C:\Temp" import "C:\Users\Talita\Desktop\Eng software PUC\3 semestre\Sistemas Operacionais\TP\Codigo mymfs\mymfs\texto.txt"</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>"C:\Temp" export "texto.txt" "C:\Users\Talita\Desktop\Eng software PUC\3 semestre"</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
 </Project>

@@ -188,13 +188,13 @@ void exportarArquivo(string caminhoComando, string nomeArquivoExport, string cam
 			if (!nomeDiretorioEncontrado.empty() && !qtdArquivosEncontrado.empty()) {
 
 				int numArquivos = stoi(qtdArquivosEncontrado);
-				if (fsys::exists(caminhoDiretorioExport)) { //Verifica se o arquivo a ser exportado existe
+				if (fsys::exists(caminhoDiretorioExport + "/"+ nomeArquivoExport)) { //Verifica se o arquivo a ser exportado existe
 					cout << "O arquivo a ser exportado ja existe na pasta destino ("
 						<< caminhoDiretorioExport << "), por favor indique outro destino." << endl; //EDITADO TALITA
 				}
 				else {
 					//Caso exista, cria um arquivo no diretorio informado concatenando todos os arquivos de 500KB
-					ofstream combined_file(caminhoDiretorioExport);
+					ofstream combined_file(caminhoDiretorioExport + "/" + nomeArquivoExport);
 					for (int i = 0; i < numArquivos; i++) {
 						auto s = to_string(i);
 						s = s + ".txt";
