@@ -188,13 +188,13 @@ void exportarArquivo(string caminhoComando, string nomeArquivoExport, string cam
 			if (!nomeDiretorioEncontrado.empty() && !qtdArquivosEncontrado.empty()) {
 
 				int numArquivos = stoi(qtdArquivosEncontrado);
-				if (fsys::exists(caminhoDiretorioExport)) { //Verifica se o arquivo a ser exportado existe
+				if (fsys::exists(caminhoDiretorioExport + "/" + nomeArquivoExport)) { //Verifica se o arquivo a ser exportado existe
 					cout << "O arquivo a ser exportado ja existe na pasta destino ("
-						<< caminhoDiretorioExport << "), por favor indique outro destino." << endl; //EDITADO TALITA
+						<< caminhoDiretorioExport + "/" + nomeArquivoExport << "), por favor indique outro destino." << endl; //EDITADO TALITA
 				}
 				else {
 					//Caso exista, cria um arquivo no diretorio informado concatenando todos os arquivos de 500KB
-					ofstream combined_file(caminhoDiretorioExport);
+					ofstream combined_file(caminhoDiretorioExport + "/" + nomeArquivoExport);
 					for (int i = 0; i < numArquivos; i++) {
 						auto s = to_string(i);
 						s = s + ".txt";
@@ -238,14 +238,18 @@ void listAll(string caminhoComando) {
 		if (linhaConfig.length() > 0) {
 			//Caso existam registros no arquivo config, eles serão buscados e exibidos
 			nomeDiretorioEncontrado = linhaConfig.substr(0, linhaConfig.find(" "));
+			string extensaoDiretorio = linhaConfig.substr(0, linhaConfig.find("-"));
 			nomeDiretorioEncontrado = nomeDiretorioEncontrado.substr(nomeDiretorioEncontrado.find("-") + 1, (nomeDiretorioEncontrado.size() - nomeDiretorioEncontrado.find("-")));
 			while (!arqConfig.eof() && !nomeDiretorioEncontrado.empty()) {
 				//Exibe nome do diretório/arquivo
-				cout << nomeDiretorioEncontrado + ".txt" << endl;
+				cout << nomeDiretorioEncontrado + "." << extensaoDiretorio << endl;
 				string linhaConfig;
 				getline(arqConfig, linhaConfig);
 				nomeDiretorioEncontrado = linhaConfig.substr(0, linhaConfig.find(" "));
+				extensaoDiretorio = linhaConfig.substr(0, linhaConfig.find("-"));
 				nomeDiretorioEncontrado = nomeDiretorioEncontrado.substr(nomeDiretorioEncontrado.find("-") + 1, (nomeDiretorioEncontrado.size() - nomeDiretorioEncontrado.find("-")));
+				cout << nomeDiretorioEncontrado + "." << extensaoDiretorio << endl;
+
 			}
 		}
 		else {
